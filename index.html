@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta
+    name="description"
+    content="داشبورد زنده تحلیل و مقایسه قیمت گوشی‌های موبایل در بازار ایران با نمایش حبابی و شناوری سیال"
+  />
+
+  <meta name="theme-color" content="#050811" />
+
+  <title>Digibble • بازار زنده موبایل ایران</title>
+
+  <!-- کتابخانه فیزیک و تصویرسازی D3.js -->
+  <script src="https://d3js.org/d3.v7.min.js" defer></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- نوار کنترل بالایی (HUD) -->
+  <header>
+    <!-- لوگوی حبابی گرافیکی دیجیبل -->
+    <a
+      href="#"
+      class="logo-brand-bubble"
+      id="site-logo"
+      title="دیجیبل - Digibble"
+      aria-label="صفحه اصلی دیجیبل"
+      style="display: inline-flex; align-items: center; text-decoration: none;">
+      <div class="brand-bubble-wrapper" style="width: 52px; height: 52px; min-width: 52px; min-height: 52px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
+        <img src="Logo/Logo.png" alt="Digibble Logo" class="brand-bubble-img" style="width: 44px; height: 44px; max-width: 100%; max-height: 100%; object-fit: contain; display: block;" />
+        <span class="brand-glow-ring" aria-hidden="true"></span>
+      </div>
+    </a>
+    <!-- جست‌وجوی سریع -->
+    <div class="search-wrapper">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="search"
+        id="quick-search-input"
+        placeholder="جستجوی سریع مدل یا برند..."
+        autocomplete="off"
+        aria-label="جستجوی گوشی"
+      />
+    </div>
+
+    <div class="controls-container">
+
+      <!-- شیوه‌ی چیدمان حباب‌ها -->
+      <div
+        class="cluster-group"
+        role="group"
+        aria-label="نوع چیدمان حباب‌ها">
+
+        <button
+          class="cluster-btn active"
+          type="button"
+          data-cluster="default"
+          title="شناوری آزاد">
+          معلق
+        </button>
+
+        <button
+          class="cluster-btn"
+          type="button"
+          data-cluster="gainers"
+          title="تفکیک بر اساس تغییرات مثبت و منفی قیمت">
+          سود/زیان
+        </button>
+
+        <button
+          class="cluster-btn"
+          type="button"
+          data-cluster="tiers"
+          title="دسته‌بندی بر اساس رده‌ی قیمت">
+          رده قیمت
+        </button>
+      </div>
+
+      <!-- انتخاب برند: فقط برندها -->
+      <div
+        class="dropdown-wrapper"
+        id="brand-dropdown-wrapper">
+
+        <button
+          class="dropdown-trigger"
+          id="brand-toggle"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="brand-menu">
+          <span id="selected-brand-label">🍏 اپل (Apple)</span>
+          <span class="dropdown-arrow-icon" aria-hidden="true">▼</span>
+        </button>
+
+        <div
+          class="dropdown-flyout"
+          id="brand-menu"
+          role="menu"
+          aria-label="انتخاب برند">
+
+          <button
+            class="dropdown-option active"
+            type="button"
+            data-brand="apple"
+            role="menuitem">
+            <span class="label">🍏 اپل (Apple)</span>
+            <span class="item-count" id="b-count-apple">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="samsung"
+            role="menuitem">
+            <span class="label">🪐 سامسونگ (Samsung)</span>
+            <span class="item-count" id="b-count-samsung">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="xiaomi"
+            role="menuitem">
+            <span class="label">⚡ شیائومی و پوکو</span>
+            <span class="item-count" id="b-count-xiaomi">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="honor"
+            role="menuitem">
+            <span class="label">💎 آنر (Honor)</span>
+            <span class="item-count" id="b-count-honor">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="huawei"
+            role="menuitem">
+            <span class="label">🌸 هواوی (Huawei)</span>
+            <span class="item-count" id="b-count-huawei">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="motorola"
+            role="menuitem">
+            <span class="label">🦅 موتورولا (Motorola)</span>
+            <span class="item-count" id="b-count-motorola">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-brand="nokia"
+            role="menuitem">
+            <span class="label">🧱 نوکیا (Nokia)</span>
+            <span class="item-count" id="b-count-nokia">۰</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- فیلتر رده‌ی قیمت برند انتخاب‌شده -->
+      <div
+        class="dropdown-wrapper"
+        id="price-dropdown-wrapper">
+
+        <button
+          class="dropdown-trigger"
+          id="price-toggle"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="price-menu">
+          <span id="selected-price-label">💰 همه رده‌های قیمت</span>
+          <span class="dropdown-arrow-icon" aria-hidden="true">▼</span>
+        </button>
+
+        <div
+          class="dropdown-flyout"
+          id="price-menu"
+          role="menu"
+          aria-label="انتخاب رده‌ی قیمت">
+
+          <button
+            class="dropdown-option active"
+            type="button"
+            data-tier="all"
+            role="menuitem">
+            <span class="label">💰 همه رده‌ها</span>
+            <span class="item-count" id="p-count-all">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-tier="budget"
+            role="menuitem">
+            <span class="label">🟢 اقتصادی</span>
+            <span class="item-count" id="p-count-budget">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-tier="mid"
+            role="menuitem">
+            <span class="label">🔵 به‌صرفه</span>
+            <span class="item-count" id="p-count-mid">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-tier="flagship"
+            role="menuitem">
+            <span class="label">🔴 پرچمدار</span>
+            <span class="item-count" id="p-count-flagship">۰</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- نمای کلی کل بازار؛ مستقل از فیلتر برند -->
+      <div
+        class="dropdown-wrapper"
+        id="overview-dropdown-wrapper">
+
+        <button
+          class="dropdown-trigger"
+          id="overview-toggle"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="overview-menu"
+          title="نمایش گوشی‌ها در یک رده‌ی قیمتی از تمام برندها">
+          <span id="selected-overview-label">🌐 نمای کلی</span>
+          <span class="dropdown-arrow-icon" aria-hidden="true">▼</span>
+        </button>
+
+        <div
+          class="dropdown-flyout"
+          id="overview-menu"
+          role="menu"
+          aria-label="نمای کلی بازار بر اساس رده‌ی قیمت">
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-overview-tier="budget"
+            role="menuitem">
+            <span class="label">🟢 اقتصادی (تمام برندها)</span>
+            <span class="item-count" id="overview-count-budget">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-overview-tier="mid"
+            role="menuitem">
+            <span class="label">🔵 به‌صرفه (تمام برندها)</span>
+            <span class="item-count" id="overview-count-mid">۰</span>
+          </button>
+
+          <button
+            class="dropdown-option"
+            type="button"
+            data-overview-tier="flagship"
+            role="menuitem">
+            <span class="label">🔴 پرچمدار (تمام برندها)</span>
+            <span class="item-count" id="overview-count-flagship">۰</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- بازه‌ی زمانی تغییرات -->
+      <div
+        class="timeframe-group"
+        id="time-controls"
+        role="group"
+        aria-label="بازه‌ی زمانی">
+
+        <button
+          class="tf-btn active"
+          type="button"
+          data-tf="24h">
+          ۲۴ ساعت
+        </button>
+
+        <button
+          class="tf-btn"
+          type="button"
+          data-tf="7d">
+          ۷ روز
+        </button>
+
+        <button
+          class="tf-btn"
+          type="button"
+          data-tf="30d">
+          ۳۰ روز
+        </button>
+      </div>
+
+      <!-- حالت تمام‌صفحه -->
+      <button
+        class="theme-switch-btn"
+        id="zen-toggle"
+        type="button"
+        title="تمام‌صفحه؛ Zen Mode"
+        aria-label="فعال‌سازی حالت تمام‌صفحه">
+        ⛶
+      </button>
+
+      <!-- تغییر تم (دارک / لایت / آکواریومی) -->
+      <button
+        class="theme-switch-btn"
+        id="theme-toggle"
+        type="button"
+        title="تغییر حالت روز و شب"
+        aria-label="تغییر تم">
+        🌊
+      </button>
+    </div>
+  </header>
+
+  <!-- صحنه‌ی شناوری حباب‌ها و فیزیک سیال -->
+  <main
+    id="chart"
+    aria-label="نمودار حبابی قیمت گوشی‌های موبایل">
+
+    <!-- لایه حباب‌های میکرو پس‌زمینه آکواریومی -->
+    <div id="aquarium-canvas-layer" aria-hidden="true"></div>
+
+    <!-- وضعیت لودینگ اولیه -->
+    <div
+      id="loading-state"
+      class="loading-state"
+      aria-live="polite">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <span>در حال واکشی و شبیه‌سازی بازار زنده...</span>
+    </div>
+
+    <!-- حالت خالی بدون دیتا -->
+    <div
+      id="empty-state"
+      class="empty-state"
+      hidden>
+      <div class="empty-icon" aria-hidden="true">🫧</div>
+      <h2>موردی پیدا نشد</h2>
+      <p>عبارت جست‌وجو یا فیلتر انتخاب‌شده را تغییر بده.</p>
+    </div>
+
+    <!-- نوار صفحه‌بندی شناور گرافیکی (ثابت در پایین صفحه) -->
+    <nav
+      id="floating-pagination-bar"
+      class="floating-pagination"
+      aria-label="صفحه‌بندی گوشی‌ها"
+      style="display: none;">
+    </nav>
+
+    <!-- کانتینر اصلی D3 SVG -->
+    <svg
+      id="bubble-chart"
+      role="img"
+      aria-label="نمایش قیمت گوشی‌ها به شکل حباب‌های شناور">
+
+      <!-- گرادیان‌ها و فیلترهای بصری به صورت داینامیک توسط app.js تزریق می‌شوند -->
+      <defs></defs>
+
+      <g id="bubble-container"></g>
+    </svg>
+  </main>
+
+  <!-- مودال خلاصه‌ی قیمت (شناور سریع) -->
+  <aside
+    id="modal"
+    aria-hidden="true"
+    aria-labelledby="m-name">
+
+    <div class="modal-header">
+      <div class="modal-title" id="m-name">-</div>
+
+      <button
+        class="modal-close-btn"
+        id="m-close"
+        type="button"
+        aria-label="بستن">
+        ✕
+      </button>
+    </div>
+
+    <div class="info-row">
+      <span>کمترین قیمت فعلی:</span>
+      <span class="val" id="m-price">-</span>
+    </div>
+
+    <div class="info-row">
+      <span>رده در بازار:</span>
+      <span class="val" id="m-tier">-</span>
+    </div>
+
+    <div class="info-row">
+      <span>میزان نوسان بازه:</span>
+      <span class="val glow-rate" id="m-change">-</span>
+    </div>
+
+    <div class="info-row">
+      <span>تقاضای بازار:</span>
+      <span class="demand-badge" id="m-pop">بسیار بالا 🔥</span>
+    </div>
+
+    <a
+      class="action-buy-btn"
+      href="#"
+      id="m-link"
+      target="_blank"
+      rel="noopener noreferrer">
+      مشاهده لیست فروشندگان
+    </a>
+  </aside>
+
+  <!-- پنل تخصصی جزئیات فنی و اسپارک‌لاین گوشی -->
+  <aside
+    id="side-panel"
+    aria-hidden="true"
+    aria-labelledby="sp-name">
+
+    <div class="sp-header">
+      <div class="sp-title">
+        <div class="sp-name" id="sp-name">-</div>
+        <div class="sp-sub" id="sp-sub">-</div>
+      </div>
+
+      <div class="sp-header-actions">
+        <button
+          class="compare-trigger-btn"
+          id="btn-trigger-compare"
+          type="button"
+          title="مقایسه با رقیب هم‌رده">
+          ⚖️ مقایسه
+        </button>
+
+        <button
+          class="sp-close"
+          id="sp-close"
+          type="button"
+          aria-label="بستن پنل">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="sp-body">
+
+      <!-- اطلاعات گوشی انتخاب‌شده -->
+      <div id="sp-single-view">
+        <div id="sp-vfm-score"></div>
+
+        <div class="sparkline-card">
+          <div class="sparkline-title">
+            <span>📈 روند تغییرات قیمت؛ ۷ روز اخیر</span>
+          </div>
+
+          <div
+            id="sp-sparkline"
+            class="sparkline-container">
+          </div>
+
+          <div
+            id="sp-sparkline-meta"
+            class="sparkline-meta">
+          </div>
+        </div>
+
+        <div class="sp-grid">
+          <div class="sp-card">
+            <div class="k">📸 سیستم دوربین</div>
+            <div class="v" id="sp-camera">-</div>
+          </div>
+
+          <div class="sp-card">
+            <div class="k`">🔋 ظرفیت باتری</div>
+            <div class="v" id="sp-battery">-</div>
+          </div>
+
+          <div class="sp-card">
+            <div class="k">⏳ بازدهی شارژدهی</div>
+            <div class="v" id="sp-endurance">-</div>
+          </div>
+
+          <div class="sp-card">
+            <div class="k">⚡ مدت زمان شارژ کامل</div>
+            <div class="v" id="sp-charge">-</div>
+          </div>
+
+          <div class="sp-card">
+            <div class="k">📱 پنل نمایشگر</div>
+            <div class="v" id="sp-display">-</div>
+          </div>
+
+          <div class="sp-card">
+            <div class="k">🧠 پردازنده و چیپست</div>
+            <div class="v" id="sp-chipset">-</div>
+          </div>
+        </div>
+
+        <div class="sp-note">
+          <div class="k">💡 تحلیل و ارزش خرید کارشناسی</div>
+          <div class="v" id="sp-note">-</div>
+        </div>
+      </div>
+
+      <!-- بخش مقایسه -->
+      <div
+        id="sp-compare-view"
+        style="display: none;">
+      </div>
+    </div>
+  </aside>
+
+  <!-- بک‌دراپ بلوری پنل جانبی -->
+  <div
+    id="side-panel-backdrop"
+    aria-hidden="true">
+  </div>
+
+  <!-- نگهدارنده‌های مخفی وضعیت برای جلوگیری از خطای احتمالی JS -->
+  <span id="data-status" hidden></span>
+  <span id="last-update-text" hidden></span>
+
+  <!-- اسکریپت اصلی هسته لاجیک و فیزیک -->
+  <script src="app.js" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

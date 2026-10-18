@@ -1,0 +1,36 @@
+name: Digibble Auto Data Update
+
+# زمان‌بندی اجرا: هر روز ساعت ۲۳:۳۰ UTC (حدود ۳ بامداد به وقت ایران)
+on:
+  schedule:
+    - cron: '30 23 * * *'
+  workflow_dispatch: # این خط بهت دکمه می‌ده تا هر زمان خواستی دستی هم بتونی ران کنی!
+
+permissions:
+  contents: write # مجوز کامیت و ذخیره دیتای جدید در ریپازیتوری
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: دریافت آخرین کدهای ریپازیتوری
+        uses: actions/checkout@v4
+
+      - name: آماده‌سازی پایتون
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: اجرای پایپ‌لاین واکشی داده‌های دیجیبل
+        run: |
+          python cron_fetcher.py
+
+      - name: ذخیره و کامیت داده‌های آپدیت شده در ریپازیتوری
+        run: |
+          git config --global user.name "Digibble Bot"
+          git config --global user.email "bot@digibble.local"
+          git add data.json price_history.json
+          # اگر تغییر قیمتی وجود داشت، کامیت کن؛ اگر فرقی نداشت ارور نده
+          git commit -m "🤖 بروزرسانی خودکار دیتای ۳۰۰ گوشی موبایل [$(date +'%Y-%m-%d %H:%M')]" || echo "داده‌ها تغییری نکرده بودند."
+          git push
